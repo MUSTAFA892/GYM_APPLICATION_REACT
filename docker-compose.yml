@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  react-app:
+    build:
+      context: ./APP-FRONTEND
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=mustafasMYSQL#123
+      - MYSQL_DB=Gym_Application
+    depends_on:
+      - db
+    volumes:
+      - ./APP-FRONTEND:/app  # Mount local frontend folder to the container
+
+  backend:
+    build:
+      context: ./APP-BACKEND
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=mustafasMYSQL#123
+      - MYSQL_DB=Gym_Application
+    depends_on:
+      - db
+    volumes:
+      - ./APP-BACKEND:/app  # Mount local backend folder to the container
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: mustafasMYSQL#123
+      MYSQL_DATABASE: Gym_Application
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: mustafasMYSQL#123
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: always
+
+volumes:
+  mysql_data:
