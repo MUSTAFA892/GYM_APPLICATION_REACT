@@ -1,90 +1,132 @@
-import React, { useState } from 'react';
-import { auth, GoogleAuthProvider, signInWithPopup } from '../firebase'; // Import the necessary functions
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios'; // Import axios
+// src/pages/Register.js
+import React, { useState } from "react";
+import { signInWithPopup, auth, googleProvider } from "../firebase";
+
 
 const Register = () => {
-  const [userData, setUserData] = useState({
-    First_Name: '',
-    Last_Name: '',
-    Email: '',
-    Password: '',
-    New_Password: ''
+  const [formData, setFormData] = useState({
+    First_Name: "",
+    Last_Name: "",
+    Email: "",
+    Password: "",
+    New_password: "",
   });
-  const navigate = useNavigate();
+  const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
-    setUserData({ ...userData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+
+  const handleGoogleRegister = async () => {
     try {
-      const response = await axios.post('http://localhost:8000/api/register', userData);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      // Prepare user data for MySQL
+      const userData = {
+        First_Name: user.displayName,
+        Last_Name: user.displayName, // Using the same name for Last_Name
+        Email: user.email,
+        Password: user.uid,
+        New_password: user.uid // Using UID instead of password
+      };
+      // Send user data to your Flask backend
+      const response = await fetch("http://localhost:8000/api/register_google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
+
       console.log(response)
-      if (response.data.success) {
-        alert("Registration successful!");
-        navigate('/login');
+      const data = await response.json();
+      if (response.ok) {
+        setMessage(data.message);
       } else {
-        alert("Registration failed");
+        setMessage(data.error || "Registration failed");
       }
     } catch (error) {
-      console.error("Error during registration:", error);
-      alert("Registration failed");
+      console.error("Google Registration Error:", error);
+      setMessage("Google Registration failed. Please try again.");
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleRegister = async (e) => {
+    e.preventDefault();
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-  
-      const userData = {
-        First_Name: user.displayName.split(' ')[0],
-        Last_Name: 'Tinwala',
-        Email: user.email,
-        Password: user.uid,
-        New_Password : user.uid
-        
-      };
-  
-      // Send the user vto the Flask backend to insert it into the MySQL database
-      try {
-        const response = await axios.post('http://localhost:8000/api/register_google', userData);
-        if (response.data.success) {
-          console.log('User registered successfully');
-        } else {
-          console.log('User already exists');
-        }
-      } catch (error) {
-        console.error('Error while registering user in backend:', error);
-        alert('Failed to register user in the backend');
+      const response = await fetch("http://localhost:8000/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setMessage(data.message);
+      } else {
+        setMessage(data.error);
       }
-  
-      // Redirect to the main app/dashboard after successful login
-      navigate('/main');
     } catch (error) {
-      console.error('Error during Google sign-in:', error);
-      alert("Google sign-in failed");
+      setMessage("An error occurred. Please try again.");
+      console.error("Error:", error);
     }
   };
 
   return (
-    <div>
+    <div className="register-container">
       <h2>Register</h2>
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="First_Name" placeholder="First Name" onChange={handleChange} required />
-        <input type="text" name="Last_Name" placeholder="Last Name" onChange={handleChange} required />
-        <input type="email" name="Email" placeholder="Email" onChange={handleChange} required />
-        <input type="password" name="Password" placeholder="Password" onChange={handleChange} required />
-        <input type="password" name="New_Password" placeholder="New Password" onChange={handleChange} required />
+      <form onSubmit={handleRegister}>
+        <input
+          type="text"
+          name="First_Name"
+          placeholder="First Name"
+          value={formData.First_Name}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="text"
+          name="Last_Name"
+          placeholder="Last Name"
+          value={formData.Last_Name}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="email"
+          name="Email"
+          placeholder="Email"
+          value={formData.Email}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="password"
+          name="Password"
+          placeholder="Password"
+          value={formData.Password}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="password"
+          name="New_password"
+          placeholder="Confirm Password"
+          value={formData.New_password}
+          onChange={handleChange}
+          required
+        />
         <button type="submit">Register</button>
       </form>
+      {message && <p>{message}</p>}
 
-      <hr />
-
-      <button onClick={handleGoogleSignIn}>Register with Google</button>
+      <button onClick={handleGoogleRegister}>Register with Google</button>
+      {message && <p>{message}</p>}
     </div>
   );
 };

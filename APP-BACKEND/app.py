@@ -40,7 +40,8 @@ def register_user():
         return jsonify({"error": "Passwords do not match"}), 400
     
     # Hash the password before saving it
-    hashed_password = generate_password_hash(data['Password'], method='sha256')
+    hashed_password = generate_password_hash(data['Password'], method='pbkdf2:sha256')
+
 
     conn = get_db_connection()
     if conn is None:
@@ -108,31 +109,76 @@ def get_users():
 
 @app.route('/api/register_google', methods=['POST'])
 def register_google_user():
-    try:
-        user_data = request.json  # The data received from the frontend
-        print(user_data)
+    data = request.json
+    print(data)
+    required_fields = ['First_Name', 'Last_Name', 'Email', 'Password', 'New_password']
+
+    # Ensure all required fields are present
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"Missing field: {field}"}), 400
     
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Check if user already exists in the database
-        cursor.execute("SELECT * FROM user_authentication WHERE Email = %s", (user_data['Email'],))
-        existing_user = cursor.fetchone()
-        
-        if existing_user:
-            return jsonify({"success": False, "message": "User already registered"}), 400
-        
-        # Register new user if not already in the database
-        cursor.execute("INSERT INTO user_authentication (First_Name, Last_Name, Email,Password,New_Password) VALUES (%s, %s, %s)",
-                       (user_data['First_Name'], user_data['Last_Name'], user_data['Email'], user_data['Password'],user_data['New_Password']))
+    # Check if the passwords match
+    if data['Password'] != data['New_password']:
+        return jsonify({"error": "Passwords do not match"}), 400
+    
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Failed to connect to the database"}), 500
+    
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO user_authentication (First_Name, Last_Name, Email, Password, New_password)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (data['First_Name'], data['Last_Name'], data['Email'], data['Password'],data['Password']))
         conn.commit()
-        
-        return jsonify({"success": True, "message": "User registered successfully"}), 201
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": "User registered successfully"}), 201
+    except mysql.connector.Error as err:
+        return jsonify({"error": f"Database error: {str(err)}"}), 500
     finally:
         cursor.close()
         conn.close()
+
+
+@app.route('/api/login_with_google', methods=['POST'])
+def login_google_user():
+    data = request.json
+
+    required_fields = ['Email', 'New_password']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"Missing field: {field}"}), 400
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Failed to connect to the database"}), 500
+
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM user_authentication WHERE Email = %s", (data['Email'],))
+        user = cursor.fetchone()
+
+
+        # Ensure all results are consumed to prevent unread result errors
+        cursor.fetchall()
+
+        if not user:
+            return jsonify({"success": False, "message": "User not found"}), 404
+
+        # Check if the UID matches the stored New_Password
+        if user['New_Password'] == data['New_password']:
+            return jsonify({"success": True, "message": "Login successful"}), 200
+        else:
+            print("Password mismatch:", user['New_Password'], "vs", data['New_password'])
+            return jsonify({"success": False, "message": "Invalid credentials"}), 401
+    except mysql.connector.Error as err:
+        return jsonify({"error": f"Database error: {str(err)}"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
 
 
 if __name__ == '__main__':
