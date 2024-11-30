@@ -6,7 +6,18 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 import google.generativeai as genai
 import json
+from dotenv import load_dotenv
 
+load_dotenv()
+
+# Get the API key from the environment variable
+api_key = os.getenv("GEMINI_API_KEY")
+
+if not api_key:
+    raise ValueError("API key not found. Please set GEMINI_API_KEY in the .env file.")
+
+# Configure the Gemini API with the key
+genai.configure(api_key=api_key)
 
 app = Flask(__name__)
 CORS(app)
@@ -18,8 +29,6 @@ MYSQL_DB = os.getenv('MYSQL_DB', 'Gym_Application')
 
 
 #Gemini Connection
-genai.configure(api_key="AIzaSyD3inOfiHwE61_9xK1taOlF4IdXXvTlwS4")
-model = genai.GenerativeModel("gemini-1.5-flash")
 def get_db_connection():
     try:
         connection = mysql.connector.connect(
@@ -278,6 +287,32 @@ def import_csv():
         return jsonify({"message": "CSV data imported successfully"}), 200
 
     except Exception as e:
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    
+@app.route('/api/gemini-response', methods=['POST'])
+def generate_response():
+    try:
+        # Get the JSON data from the request
+        data = request.get_json()
+        user_prompt = data.get('prompt', '')  # Get the prompt from the request
+
+        if not user_prompt:
+            return jsonify({"error": "Prompt is required"}), 400
+
+        # Initialize the model
+        model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+
+        # Generate content using the user's prompt
+        response = model.generate_content(user_prompt)
+
+        # If the response contains text, return it
+        if response.text:
+            return jsonify({"response": response.text}), 200
+        else:
+            return jsonify({"error": "No response from the model"}), 500
+
+    except Exception as e:
+        # Catch any exceptions and return a 500 error with the exception message
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 

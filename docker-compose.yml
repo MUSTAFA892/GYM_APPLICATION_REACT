@@ -14,8 +14,7 @@ services:
       - MYSQL_DB=Gym_Application
     depends_on:
       - db
-    volumes:
-      - ./APP-FRONTEND:/app  # Mount local frontend folder to the container
+  # Mount local frontend folder to the container
 
   backend:
     build:
