@@ -1,8 +1,12 @@
+import csv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import mysql.connector
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
+import google.generativeai as genai
+import json
+
 
 app = Flask(__name__)
 CORS(app)
@@ -12,6 +16,10 @@ MYSQL_USER = os.getenv('MYSQL_USER', 'admin')
 MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD', 'mustafasMYSQL#123')
 MYSQL_DB = os.getenv('MYSQL_DB', 'Gym_Application')
 
+
+#Gemini Connection
+genai.configure(api_key="AIzaSyD3inOfiHwE61_9xK1taOlF4IdXXvTlwS4")
+model = genai.GenerativeModel("gemini-1.5-flash")
 def get_db_connection():
     try:
         connection = mysql.connector.connect(
@@ -159,7 +167,6 @@ def login_google_user():
         cursor.execute("SELECT * FROM user_authentication WHERE Email = %s", (data['Email'],))
         user = cursor.fetchone()
 
-
         # Ensure all results are consumed to prevent unread result errors
         cursor.fetchall()
 
@@ -179,6 +186,99 @@ def login_google_user():
         conn.close()
 
 
+@app.route('/api/generate-workout', methods=['POST'])
+def generate_workout():
+    try:
+        data = request.get_json()
+        number_of_workouts = data.get('numberOfWorkouts', 1)
+        workouts_per_day = data.get('workoutsPerDay', {})
+
+        workout_plan = {}
+
+        # Connect to the database
+        connection = get_db_connection()
+        cursor = connection.cursor()
+
+        for day, body_part in workouts_per_day.items():
+            if body_part == "Rest":
+                workout_plan[day] = []  # No exercises for rest day
+                continue
+
+            # Query exercises based on the body part for each day
+            cursor.execute("""
+                SELECT title, description, body_part, equipment, level, rating, rating_desc
+                FROM exercises
+                WHERE body_part = %s
+                ORDER BY RAND()
+                LIMIT %s
+            """, (body_part, 5))  # Randomly fetch 5 exercises for each day
+  # Limit to 5 exercises for each day
+
+            exercises = cursor.fetchall()
+
+            if exercises:  # If exercises are found for the day
+                workout_plan[day] = []
+                for exercise in exercises:
+                    workout_plan[day].append({
+                        "exercise": exercise[0],
+                        "equipment" : exercise[3],
+                        "bodypart" : exercise[2],    # title
+                        "sets": 3,  # example number of sets
+                        "reps": 10,  # example number of reps
+                        "rest": "60s",  # example rest time
+                    })
+            else:
+                workout_plan[day] = []  # If no exercises are found, mark as empty
+
+        # Close the database connection
+        cursor.close()
+        connection.close()
+
+        return jsonify({"plan": workout_plan}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
+# To add the data into the db from the excel
+@app.route('/api/import-csv', methods=['POST'])
+def import_csv():
+    try:
+        # Specify the path to your CSV file
+        csv_file_path = 'megaGymDataset_m.csv'  # Update this to the actual path of your CSV file
+
+        # Establish connection to MySQL
+        connection = get_db_connection()
+        if connection is None:
+            return jsonify({"error": "Failed to connect to the database"}), 500
+
+        cursor = connection.cursor()
+
+        # Open the CSV file and read it
+        with open(csv_file_path, 'r') as file:
+            reader = csv.reader(file)
+            next(reader)  # Skip the header row (if your CSV has headers)
+            
+            # Iterate over each row in the CSV and insert into MySQL
+            for row in reader:
+                cursor.execute(
+                    """
+                    INSERT INTO exercises (id,title, description, type, body_part, equipment, level, rating, rating_desc)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s)
+                    """,
+                    row
+                )
+        
+        # Commit changes to the database
+        connection.commit()
+
+        # Close the cursor and connection
+        cursor.close()
+        connection.close()
+
+        return jsonify({"message": "CSV data imported successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 
 if __name__ == '__main__':

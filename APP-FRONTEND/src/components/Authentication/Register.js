@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { signInWithPopup, auth, googleProvider } from "../firebase";
+import { signInWithPopup, auth, googleProvider,appleProvider } from "../../firebase";
 import { Link as RouterLink } from "react-router-dom";
 import { Box, Container, Link, Divider } from "@mui/material";
-import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa"; // For icons
+import { FaEye, FaEyeSlash, FaGoogle, FaApple } from "react-icons/fa"; // For icons
 import styled from "@emotion/styled";
 import { motion } from "framer-motion";
 import { Typography } from '@mui/material';
-import gymimage from "../assets/images/gym.jpg"
+import gymimage from '../../assets/images/gym.jpg'
 // Styled Components
 const RootStyle = styled("div")({
   background: "rgb(249, 250, 251)",
@@ -54,6 +54,29 @@ const GoogleButton = styled("button")({
     transform: "scale(0.95)",
   },
 });
+
+
+const AppleButton = styled("button")({
+  backgroundColor: "#000000", // Apple's signature black color
+  color: "white", // White apple logo or text
+  borderRadius: "50%", // Circular button
+  width: "50px",
+  height: "50px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  border: "none",
+  cursor: "pointer",
+  marginBottom: "20px",
+  transition: "background-color 0.3s ease, transform 0.2s ease",
+  "&:hover": {
+    backgroundColor: "#333333", // Slightly lighter black for hover
+  },
+  "&:active": {
+    transform: "scale(0.95)", // Button "press" effect
+  },
+});
+
 
 const inputStyles = {
   padding: "12px",
@@ -185,6 +208,40 @@ const Register = () => {
     }
   };
 
+  // const handleAppleRegister = async () => {
+  //   try {
+  //     // Trigger Apple Sign-In using the Firebase auth and appleProvider
+  //     const result = await auth.signInWithPopup(appleProvider);
+  //     const user = result.user;
+  
+  //     // Prepare the user data for your backend
+  //     const userData = {
+  //       First_Name: user.displayName || "Unknown",
+  //       Last_Name: user.displayName || "Unknown",
+  //       Email: user.email,
+  //       UID: user.uid,
+  //     };
+  
+  //     // Send user data to your backend for registration
+  //     const response = await fetch("http://localhost:8000/api/register_with_apple", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(userData),
+  //     });
+  
+  //     if (response.ok) {
+  //       console.log("Apple Registration Successful");
+  //     } else {
+  //       console.error("Failed to register with Apple");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error with Apple Registration:", error);
+  //   }
+  // };
+  
+
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
@@ -217,6 +274,9 @@ const Register = () => {
             <GoogleButton onClick={handleGoogleRegister}>
               <FaGoogle style={{ fontSize: "24px" }} />
             </GoogleButton>
+            {/* <AppleButton >
+            <FaApple style={{ fontSize: "24px" }} />
+          </AppleButton> */}
           </Typography>
 
           <Divider sx={{ my: 3 }} component={motion.div} {...fadeInUp}>
@@ -336,7 +396,7 @@ const Register = () => {
             </form>
           </Box>
 
-          {message && <p style={{ color: "red",textAlign:'center' }}>{message}</p>}
+          {message && <p style={{ color: "green",textAlign:'center' }}>{message}</p>}
 
           <Typography
             component={motion.p}
@@ -348,6 +408,18 @@ const Register = () => {
             Already have an account?{" "}
             <Link variant="subtitle2" component={RouterLink} to="/login">
               Login
+            </Link>
+          </Typography>
+          <Typography
+            component={motion.p}
+            {...fadeInUp}
+            variant="body2"
+            align="center"
+            sx={{ color: "text.secondary", mt: 2 }}
+          >
+            Go To Home Page{" "}
+            <Link variant="subtitle2" component={RouterLink} to="/">
+              Home
             </Link>
           </Typography>
         </ContentStyle>

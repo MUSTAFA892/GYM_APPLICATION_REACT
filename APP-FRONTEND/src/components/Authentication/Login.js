@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { signInWithPopup, auth, googleProvider } from "../firebase";
+import { signInWithPopup, auth, googleProvider } from "../../firebase";
 import { Box, Container, Link, Divider, Typography } from "@mui/material";
 import { FaGoogle } from "react-icons/fa"; // For Google icon
 import styled from "@emotion/styled";
 import { motion } from "framer-motion";
 import { Link as RouterLink } from "react-router-dom";
-import gymimage from "../assets/images/gym.jpg"
+import gymimage from "../../assets/images/gym.jpg"
 
 // Styled Components (similar to Register.js)
 const RootStyle = styled("div")({
@@ -119,7 +119,7 @@ const Login = () => {
       if (response.ok) {
         setMessage(data.message);
         // Redirect to the dashboard or home page on successful login
-        window.location.href = "/dashboard";
+        window.location.href = "/";
       } else {
         setMessage(data.message || "Invalid credentials");
       }
@@ -151,7 +151,7 @@ const Login = () => {
       const data = await response.json();
       if (response.ok) {
         setMessage(data.message);
-        window.location.href = "/dashboard";
+        window.location.href = "/";
       } else {
         setMessage(data.error || "Login failed");
       }
@@ -230,13 +230,19 @@ const Login = () => {
           </Box>
 
           {/* Display message */}
-          {message && <p style={{ color: "red", textAlign: "center" }}>{message}</p>}
+          {message && <p style={{ color: "green", textAlign: "center" }}>{message}</p>}
 
           {/* Link to Register Page */}
           <Typography variant="body2" align="center" sx={{ color: "text.secondary", mt: 2 }}>
             Don't have an account?{" "}
             <Link variant="subtitle2" component={RouterLink} to="/register">
               Register
+            </Link>
+          </Typography>
+          <Typography variant="body2" align="center" sx={{ color: "text.secondary", mt: 2 }}>
+            Go To Home Page{" "}
+            <Link variant="subtitle2" component={RouterLink} to="/">
+              Home
             </Link>
           </Typography>
         </ContentStyle>

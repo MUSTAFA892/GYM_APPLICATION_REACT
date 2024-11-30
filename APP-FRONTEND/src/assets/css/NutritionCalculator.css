@@ -1,0 +1,72 @@
+.nutrition-calculator {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .nutrition-calculator h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .input-section input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .input-section button {
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .input-section button:disabled {
+    background-color: #6c757d;
+  }
+  
+  .summary-section {
+    margin-top: 20px;
+  }
+  
+  .summary-section h3 {
+    color: #555;
+  }
+  
+  .summary-section ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .summary-section ul li {
+    margin-bottom: 5px;
+  }
+  
+  .summary-section h4 {
+    margin-top: 20px;
+  }
+  
+  .summary-section button {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  

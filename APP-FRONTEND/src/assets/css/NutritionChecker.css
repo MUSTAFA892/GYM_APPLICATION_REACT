@@ -1,0 +1,197 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Main Container */
+.nutrition-checker {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px;
+    background-color: #2c2c2c;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    margin-top: 50px;
+    font-family: 'Roboto', sans-serif;
+    color: #f1f1f1;
+    text-align: center; /* Center content */
+    margin-bottom: 20px;
+}
+
+/* Title Styling */
+.nutrition-checker-container h1 {
+    font-size: 40px;
+    color: #1e90ff;
+    margin-bottom: 20px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* Search Bar Container Styling */
+.search-bar {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px; /* Space between search and results */
+}
+
+/* Input Field Styling */
+.search-bar input {
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    width: 100%;
+    max-width: 400px;
+    background-color: #333;
+    color: #f1f1f1;
+    transition: border-color 0.3s ease;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: #1e90ff;
+    box-shadow: 0 0 5px rgba(30, 144, 255, 0.5);
+}
+
+/* Search Button Styling */
+.search-bar button {
+    padding: 12px 25px;
+    font-size: 16px;
+    background-color: #1e90ff;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.search-bar button:disabled {
+    background-color: #444;
+    cursor: not-allowed;
+}
+
+.search-bar button:hover {
+    background-color: #0d2538;
+    transform: scale(1.05);
+}
+
+/* Table Styling */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 30px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+th,
+td {
+    padding: 12px 15px;
+    border: 1px solid #444;
+}
+
+th {
+    background-color: #1e90ff;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+td {
+    background-color: #333;
+    color: #f1f1f1;
+    font-size: 16px;
+}
+
+td .highlight {
+    font-weight: bold;
+    color: #1e90ff;
+}
+
+/* Row Hover Effect */
+tr:hover {
+    background-color: #444;
+    transition: background-color 0.3s ease;
+}
+
+/* Button Styling */
+.nutrition-button {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #1e90ff;
+    color: white;
+    text-decoration: none;
+    border-radius: 30px;
+    font-size: 16px;
+    margin-top: 20px;
+    text-align: center;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.nutrition-button:hover {
+    background-color: #0d2538;
+    transform: scale(1.05);
+}
+
+/* Responsive Design for Small Screens */
+@media (max-width: 768px) {
+    .nutrition-checker-container {
+        padding: 20px;
+    }
+
+    table {
+        font-size: 14px;
+    }
+
+    th,
+    td {
+        padding: 8px;
+    }
+
+    .nutrition-button {
+        font-size: 14px;
+        padding: 10px 20px;
+    }
+
+    /* Input Field on Small Screens */
+    .search-bar input {
+        max-width: 100%;
+        padding: 10px;
+    }
+
+    .search-bar button {
+        padding: 10px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .nutrition-checker-container {
+        padding: 15px;
+    }
+
+    table {
+        font-size: 12px;
+    }
+
+    .nutrition-button {
+        font-size: 12px;
+        padding: 8px 15px;
+    }
+
+    .search-bar input {
+        padding: 8px;
+    }
+
+    .search-bar button {
+        padding: 8px 15px;
+    }
+}
