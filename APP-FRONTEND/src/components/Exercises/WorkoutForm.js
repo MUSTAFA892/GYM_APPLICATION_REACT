@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Cookies from "js-cookie";  // Import js-cookie to handle cookies
 import "../../assets/css/WorkoutForm.css";
 
 const WorkoutForm = () => {
@@ -17,9 +18,17 @@ const WorkoutForm = () => {
     },
   });
 
-  const [workoutPlan, setWorkoutPlan] = useState(null); // State to store the API response
+  const [workoutPlan, setWorkoutPlan] = useState(null); // State to store the workout plan
   const [isLoading, setIsLoading] = useState(false); // Loading spinner
   const [error, setError] = useState(null); // Error state
+
+  useEffect(() => {
+    // Check if there is a saved workout plan in cookies and load it
+    const savedWorkoutPlan = Cookies.get("workoutPlan");
+    if (savedWorkoutPlan) {
+      setWorkoutPlan(JSON.parse(savedWorkoutPlan)); // Parse the saved JSON data
+    }
+  }, []);
 
   // Handle input change
   const handleInputChange = (e) => {
@@ -56,7 +65,12 @@ const WorkoutForm = () => {
     try {
       // Send request to your backend API
       const response = await axios.post("http://localhost:8000/api/generate-workout", requestData);
-      setWorkoutPlan(response.data.plan); // Set the workout plan state
+      const generatedPlan = response.data.plan; // Get the workout plan from the API
+
+      setWorkoutPlan(generatedPlan); // Set the workout plan state
+
+      // Save the workout plan to a cookie
+      Cookies.set("workoutPlan", JSON.stringify(generatedPlan), { expires: 7 }); // Save for 7 days
     } catch (error) {
       setError("Failed to generate workout plan. Please try again.");
       console.error("Error fetching workout plan:", error);
@@ -82,6 +96,9 @@ const WorkoutForm = () => {
     });
     setWorkoutPlan(null); // Clear the workout plan
     setError(null); // Clear error message
+
+    // Remove the workout plan from the cookie
+    Cookies.remove("workoutPlan");
   };
 
   // Render workout plan dynamically
@@ -96,8 +113,8 @@ const WorkoutForm = () => {
               <thead>
                 <tr>
                   <th>Exercise</th>
-                  <th>Equpiment</th>
-                  <th>BodyPart</th>
+                  <th>Equipment</th>
+                  <th>Body Part</th>
                   <th>Sets</th>
                   <th>Reps</th>
                   <th>Rest Time</th>
@@ -131,8 +148,6 @@ const WorkoutForm = () => {
         <p>Get personalized exercise plans tailored to your needs. Start your fitness journey today!</p>
 
         <form onSubmit={handleSubmit} className="workout-form">
-
-
           <div className="form-group">
             <label htmlFor="numberOfSets">Number of Sets</label>
             <input
@@ -159,22 +174,22 @@ const WorkoutForm = () => {
                 onChange={handleInputChange}
                 className="input-field"
               >
-            <option value="Chest">Chest</option>
-            <option value="Adductors">Adductors</option>
-            <option value="Calves">Calves</option>
-            <option value="Biceps">Biceps</option>
-            <option value="Shoulders">Shoulders</option>
-            <option value="Abdominals">Abdominals</option>
-            <option value="Forearms">Forearms</option>
-            <option value="Hamstrings">Hamstrings</option>
-            <option value="Lats">Lats</option>
-            <option value="Lower Back">Lower Back</option>
-            <option value="Middle Back">Middle Back</option>
-            <option value="Traps">Traps</option>
-            <option value="Neck">Neck</option>
-            <option value="Quadriceps">Quadriceps</option>
-            <option value="Triceps">Triceps</option>
-            <option value="Rest">Rest</option>
+                <option value="Chest">Chest</option>
+                <option value="Adductors">Adductors</option>
+                <option value="Calves">Calves</option>
+                <option value="Biceps">Biceps</option>
+                <option value="Shoulders">Shoulders</option>
+                <option value="Abdominals">Abdominals</option>
+                <option value="Forearms">Forearms</option>
+                <option value="Hamstrings">Hamstrings</option>
+                <option value="Lats">Lats</option>
+                <option value="Lower Back">Lower Back</option>
+                <option value="Middle Back">Middle Back</option>
+                <option value="Traps">Traps</option>
+                <option value="Neck">Neck</option>
+                <option value="Quadriceps">Quadriceps</option>
+                <option value="Triceps">Triceps</option>
+                <option value="Rest">Rest</option>
               </select>
             </div>
           ))}
@@ -189,7 +204,6 @@ const WorkoutForm = () => {
           </div>
         </form>
       </div>
-      
 
       {/* Error Message */}
       {error && <p className="error-message">{error}</p>}

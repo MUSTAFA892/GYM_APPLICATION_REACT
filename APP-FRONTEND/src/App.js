@@ -8,6 +8,7 @@ import Form from "./components/Exercises/WorkoutForm"
 import MainPage from "./components/MainPage/MainPage"
 import NutritionChecker from "./components/Nutrition/NutritionChecker";
 import NutritionCalculator from "./components/Nutrition/NutritionCalculator";
+import NutritionPlan from "./components/Nutrition/NutritionPlan";
 function App() {
   return (
     <Router>
@@ -19,6 +20,7 @@ function App() {
         <Route path="/" element={<MainPage/>}/>
         <Route path="/nutrition-checker" element={<NutritionChecker/>}/>
         <Route path="/nutrition-calculator" element={<NutritionCalculator/>}/>
+        <Route path="/nutrition-plan" element={<NutritionPlan/>}/>
       </Routes>
     </Router>
   );

@@ -30,7 +30,7 @@ const MainPage = () => {
               {nutritionMenu && (
                 <ul className="dropdown-menu">
                   <li><a href="/nutrition-checker">Nutrition Checker</a></li>
-                  <li><a href="/nutrition-tips">Nutrition Plan</a></li>
+                  <li><a href="/nutrition-plan">Nutrition Plan</a></li>
                   <li><a href="/nutrition-calculator">Calculator</a></li>
                 </ul>
               )}

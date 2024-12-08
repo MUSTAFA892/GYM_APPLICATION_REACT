@@ -5,3 +5,6 @@ requests
 google-generativeai
 python-dotenv
 pillow
+opencv-python
+cvzone
+mediapipe

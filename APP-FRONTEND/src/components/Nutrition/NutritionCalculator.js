@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Cookies from "js-cookie";  // Importing js-cookie
 import "../../assets/css/NutritionCalculator.css";
 
 const NutritionCalculator = () => {
@@ -11,6 +12,30 @@ const NutritionCalculator = () => {
   const [dailySummary, setDailySummary] = useState([]);  // Summary of meals added by the user
   const [total, setTotal] = useState({ carbs: 0, protein: 0, fat: 0, calories: 0 });  // Total nutritional values
   const [loading, setLoading] = useState(false);  // Loading state for the API request
+
+  // Fetch daily summary from cookies when component mounts
+  useEffect(() => {
+    const savedSummary = Cookies.get("dailySummary");
+    if (savedSummary) {
+      setDailySummary(JSON.parse(savedSummary));
+      updateTotal(JSON.parse(savedSummary)); // Recalculate totals based on saved summary
+    }
+  }, []);
+
+  // Function to update the total nutritional values based on the daily summary
+  const updateTotal = (summary) => {
+    const newTotal = summary.reduce(
+      (acc, meal) => {
+        acc.carbs += meal.carbs;
+        acc.protein += meal.protein;
+        acc.fat += meal.fat;
+        acc.calories += meal.calories;
+        return acc;
+      },
+      { carbs: 0, protein: 0, fat: 0, calories: 0 }
+    );
+    setTotal(newTotal);
+  };
 
   // Function to add a meal with manually input nutritional values
   const handleAddMeal = () => {
@@ -27,14 +52,14 @@ const NutritionCalculator = () => {
       calories: parseFloat(calories),
     };
 
-    setDailySummary([...dailySummary, meal]);
-    setTotal({
-      carbs: total.carbs + meal.carbs,
-      protein: total.protein + meal.protein,
-      fat: total.fat + meal.fat,
-      calories: total.calories + meal.calories,
-    });
+    const updatedSummary = [...dailySummary, meal];
 
+    // Update daily summary in state and cookie
+    setDailySummary(updatedSummary);
+    Cookies.set("dailySummary", JSON.stringify(updatedSummary), { expires: 7 }); // Store summary in cookie for 7 days
+    updateTotal(updatedSummary); // Update total nutritional values
+
+    // Clear input fields
     setDish("");
     setCarbs("");
     setProtein("");
@@ -51,18 +76,13 @@ const NutritionCalculator = () => {
     setLoading(true);
 
     try {
-      // Sending the dish name as a prompt to the backend
       const response = await axios.post(
         "http://127.0.0.1:8000/api/gemini-response",  // Flask API endpoint
         {
           prompt: `Can u give me the nutrition values of ${dish} like carbs , protein , fat, Calories Note = dont give me full senftence just example protein : 10g like this only give me this 4 values no other words or sentence, also dont give me the values as ex:- 20-30, like dont give me range values`,  // Sending dynamic prompt
         }
       );
- 
-      // Assuming the response contains the generated text from the AI
       const { response: generatedText } = response.data;
-
-      // Automatically parse nutritional information from the response
       const nutritionInfo = parseNutritionInfo(generatedText);
 
       // Set state values for carbs, protein, fat, and calories from the parsed info
@@ -79,39 +99,32 @@ const NutritionCalculator = () => {
   };
 
   // Function to parse the nutritional values from the AI's generated text
-// Function to parse the nutritional values from the AI's generated text
-const parseNutritionInfo = (text) => {
-  const nutritionInfo = {
-    carbs: "",
-    protein: "",
-    fat: "",
-    calories: ""
+  const parseNutritionInfo = (text) => {
+    const nutritionInfo = {
+      carbs: "",
+      protein: "",
+      fat: "",
+      calories: ""
+    };
+
+    const carbsMatch = text.match(/Carbs\s*[:\-\s]*(\d+(?:\.\d+)?)\s*(g|g\w*)/i);
+    const proteinMatch = text.match(/Protein\s*[:\-\s]*(\d+(?:\.\d+)?)\s*(g|g\w*)/i);
+    const fatMatch = text.match(/Fat\s*[:\-\s]*(\d+(?:\.\d+)?)\s*(g|g\w*)/i);
+    const caloriesMatch = text.match(/Calories\s*[:\-\s]*(\d+(?:\.\d+)?)(?:\s*(kcal|calories?))?/i);
+
+    if (carbsMatch) nutritionInfo.carbs = carbsMatch[1];
+    if (proteinMatch) nutritionInfo.protein = proteinMatch[1];
+    if (fatMatch) nutritionInfo.fat = fatMatch[1];
+    if (caloriesMatch) nutritionInfo.calories = caloriesMatch[1];
+
+    return nutritionInfo;
   };
-
-  // Updated regex for matching values with or without units (for calories)
-  const carbsMatch = text.match(/Carbs\s*[:\-\s]*(\d+(?:\.\d+)?)\s*(g|g\w*)/i);
-  const proteinMatch = text.match(/Protein\s*[:\-\s]*(\d+(?:\.\d+)?)\s*(g|g\w*)/i);
-  const fatMatch = text.match(/Fat\s*[:\-\s]*(\d+(?:\.\d+)?)\s*(g|g\w*)/i);
-  
-  // Modify the regex to handle cases where the "Calories" value may not have units
-  const caloriesMatch = text.match(/Calories\s*[:\-\s]*(\d+(?:\.\d+)?)(?:\s*(kcal|calories?))?/i);
-
-
-
-  if (carbsMatch) nutritionInfo.carbs = carbsMatch[1];
-  if (proteinMatch) nutritionInfo.protein = proteinMatch[1];
-  if (fatMatch) nutritionInfo.fat = fatMatch[1];
-  if (caloriesMatch) nutritionInfo.calories = caloriesMatch[1];
-
-  return nutritionInfo;
-};
-
-
 
   // Function to reset the daily summary and total values
   const handleReset = () => {
     setDailySummary([]);
     setTotal({ carbs: 0, protein: 0, fat: 0, calories: 0 });
+    Cookies.remove("dailySummary"); // Remove the summary cookie
   };
 
   return (
@@ -173,8 +186,7 @@ const parseNutritionInfo = (text) => {
           </p>
           <button onClick={handleReset}>Reset</button>
         </div>
-  
-        {/* Display the fetched nutrition data automatically */}
+
         {carbs && (
           <div className="fetched-nutrition">
             <h3>Fetched Nutrition for {dish}</h3>
@@ -187,6 +199,6 @@ const parseNutritionInfo = (text) => {
       </div>
     </div>
   );
-  };
+};
 
 export default NutritionCalculator;
